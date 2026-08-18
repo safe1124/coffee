@@ -107,11 +107,7 @@ h1 em { color: #e1b58d; font-family: Georgia, "Times New Roman", serif; font-wei
 .suggestion-row button { border: 1px solid var(--line); border-radius: 99px; padding: 8px 13px; color: var(--muted); background: white; font-size: 12px; font-weight: 700; }
 .suggestion-row button:hover, .suggestion-row button.selected { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .wizard-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 40px; padding-top: 22px; border-top: 1px solid var(--line); }
-.auto-advance-note { display: flex; align-items: center; gap: 9px; margin: 0; color: var(--muted); font-size: 12px; font-weight: 700; }
-.auto-advance-note span { width: 8px; height: 8px; border-radius: 50%; background: var(--latte); box-shadow: 0 0 0 5px rgba(205, 164, 125, .18); animation: coffee-pulse 1.8s ease-in-out infinite; }
-@keyframes coffee-pulse {
-  50% { box-shadow: 0 0 0 8px rgba(205, 164, 125, 0); }
-}
+.wizard-actions .primary-button { min-width: 140px; }
 .primary-button, .secondary-button { border-radius: 999px; padding: 13px 20px; font-weight: 850; transition: .16s ease; }
 .primary-button { border: 1px solid var(--accent); color: white; background: var(--accent); }
 .primary-button:hover { background: var(--accent-deep); transform: translateY(-1px); }
@@ -241,7 +237,9 @@ footer p { max-width: 760px; margin: 0; text-align: right; }
   .wizard-input input { padding: 17px 8px 17px 18px; font-size: 29px; }
   .wizard-input em { padding-right: 18px; }
   .wizard-actions { margin-top: 30px; }
-  .auto-advance-note { max-width: 190px; justify-content: flex-end; text-align: right; line-height: 1.4; }
+  .wizard-actions { position: sticky; z-index: 5; bottom: 8px; margin-inline: -7px; padding: 10px; border: 1px solid rgba(217, 207, 194, .9); border-radius: 18px; background: rgba(255, 252, 247, .94); box-shadow: 0 12px 30px rgba(45, 29, 21, .16); backdrop-filter: blur(16px); }
+  .wizard-actions .secondary-button { flex: 0 0 86px; min-height: 52px; }
+  .wizard-actions .primary-button { flex: 1; min-height: 52px; }
   .result-intro { flex-direction: column; }
   .result-metrics { grid-template-columns: 1fr; }
   .metric-card > strong { font-size: 30px; }

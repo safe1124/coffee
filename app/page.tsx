@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 type ViewMode = 'simple' | 'compare';
 type BrewMethod = 'espresso' | 'capsule' | 'brewing' | 'bottle';
@@ -270,17 +270,12 @@ function SimpleCalculator() {
   const [method, setMethod] = useState<BrewMethod | null>(null);
   const [answers, setAnswers] = useState<SimpleAnswers>(INITIAL_ANSWERS);
   const [step, setStep] = useState(0);
-  const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const questions = useMemo(() => (method ? getQuestions(method) : []), [method]);
   const isResult = Boolean(method && step > questions.length);
   const currentQuestion = step > 0 && step <= questions.length ? questions[step - 1] : null;
   const totalSteps = questions.length + 1;
-  const progress = isResult ? 100 : method ? ((step + 1) / totalSteps) * 100 : 0;
-
-  useEffect(() => () => {
-    if (advanceTimer.current) clearTimeout(advanceTimer.current);
-  }, []);
+  const progress = isResult ? 100 : method ? (step / totalSteps) * 100 : 0;
 
   const result = useMemo(() => {
     if (!method) return null;
@@ -333,31 +328,6 @@ function SimpleCalculator() {
     setAnswers((current) => ({ ...current, [id]: Number.isFinite(value) ? value : 0 }));
   };
 
-  const scheduleAdvance = (delay: number) => {
-    if (advanceTimer.current) clearTimeout(advanceTimer.current);
-    advanceTimer.current = setTimeout(() => {
-      setStep((current) => current + 1);
-      advanceTimer.current = null;
-    }, delay);
-  };
-
-  const advanceNow = () => {
-    if (advanceTimer.current) clearTimeout(advanceTimer.current);
-    advanceTimer.current = null;
-    setStep((current) => current + 1);
-  };
-
-  const answerAndAdvance = (id: keyof SimpleAnswers, value: number, delay: number) => {
-    updateAnswer(id, value);
-    const question = questions[step - 1];
-    if (question && value >= question.min && value <= question.max) {
-      scheduleAdvance(delay);
-    } else if (advanceTimer.current) {
-      clearTimeout(advanceTimer.current);
-      advanceTimer.current = null;
-    }
-  };
-
   const selectMethod = (nextMethod: BrewMethod) => {
     setMethod(nextMethod);
     setAnswers((current) => ({
@@ -367,12 +337,9 @@ function SimpleCalculator() {
       equipmentCost: nextMethod === 'brewing' ? 100000 : 300000,
       annualSuppliesCost: nextMethod === 'bottle' ? 0 : 30000,
     }));
-    scheduleAdvance(260);
   };
 
   const restart = () => {
-    if (advanceTimer.current) clearTimeout(advanceTimer.current);
-    advanceTimer.current = null;
     setMethod(null);
     setAnswers(INITIAL_ANSWERS);
     setStep(0);
@@ -515,9 +482,9 @@ function SimpleCalculator() {
               max={currentQuestion.max}
               step={currentQuestion.step}
               value={answers[currentQuestion.id]}
-              onChange={(event) => answerAndAdvance(currentQuestion.id, Number(event.target.value), 900)}
+              onChange={(event) => updateAnswer(currentQuestion.id, Number(event.target.value))}
               onKeyDown={(event) => {
-                if (event.key === 'Enter' && canContinue) advanceNow();
+                if (event.key === 'Enter' && canContinue) setStep((current) => current + 1);
               }}
             />
             <em>{currentQuestion.unit}</em>
@@ -525,7 +492,7 @@ function SimpleCalculator() {
           {currentQuestion.suggestions ? (
             <div className="suggestion-row" aria-label="빠른 선택">
               {currentQuestion.suggestions.map((value) => (
-                <button key={value} type="button" className={answers[currentQuestion.id] === value ? 'selected' : ''} onClick={() => answerAndAdvance(currentQuestion.id, value, 220)}>
+                <button key={value} type="button" className={answers[currentQuestion.id] === value ? 'selected' : ''} onClick={() => updateAnswer(currentQuestion.id, value)}>
                   {formatNumber(value)}{currentQuestion.unit}
                 </button>
               ))}
@@ -535,12 +502,10 @@ function SimpleCalculator() {
       ) : null}
 
       <div className="wizard-actions">
-        <button className="secondary-button" onClick={() => {
-          if (advanceTimer.current) clearTimeout(advanceTimer.current);
-          advanceTimer.current = null;
-          setStep((current) => Math.max(0, current - 1));
-        }} disabled={step === 0}>이전</button>
-        <p className="auto-advance-note"><span aria-hidden="true" />선택하거나 입력하면 자동으로 넘어갑니다</p>
+        <button className="secondary-button" onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={step === 0}>이전</button>
+        <button className="primary-button" onClick={() => setStep((current) => current + 1)} disabled={!canContinue}>
+          {step === 0 ? '선택 완료' : step === questions.length ? '결과 확인' : '입력 완료'}
+        </button>
       </div>
     </section>
   );
